@@ -3,7 +3,6 @@ FROM golang:1.24-alpine AS builder
 
 ARG REPO_URL
 ARG COMMIT_ID
-ARG SHORT_COMMIT_ID
 ARG VERSION
 
 ENV GOPATH=/go
@@ -15,7 +14,7 @@ RUN apk add -U --no-cache ca-certificates git curl bash
 
 COPY . .
 
-RUN echo "Building MinIO: ${VERSION} (${SHORT_COMMIT_ID})" && \
+RUN echo "Building MinIO: ${VERSION} (${COMMIT_ID::7})" && \
     go build -trimpath \
         -ldflags " \
             -s -w \
@@ -23,7 +22,7 @@ RUN echo "Building MinIO: ${VERSION} (${SHORT_COMMIT_ID})" && \
             -X github.com/minio/minio/cmd.CopyrightYear=$(date +%Y) \
             -X github.com/minio/minio/cmd.ReleaseTag=${VERSION} \
             -X github.com/minio/minio/cmd.CommitID=${COMMIT_ID} \
-            -X github.com/minio/minio/cmd.ShortCommitID=${SHORT_COMMIT_ID} \
+            -X github.com/minio/minio/cmd.ShortCommitID=${COMMIT_ID::7} \
             -X github.com/minio/minio/cmd.GOPATH=${GOPATH} \
             -X github.com/minio/minio/cmd.GOROOT=$(go env GOROOT)" \
         -o /usr/bin/minio .
