@@ -34,8 +34,8 @@ RUN /usr/bin/minio --version
 RUN curl -sL https://dl.min.io/client/mc/release/linux-$(go env GOARCH)/mc -o /usr/bin/mc && \
     chmod +x /usr/bin/mc
 
-RUN curl -fsSL "https://github.com/moparisthebest/static-curl/releases/download/v8.17.0/curl-amd64" -o /go/bin/curl && \
-    chmod +x /go/bin/curl
+# "https://github.com/moparisthebest/static-curl/releases/download/v8.17.0/curl-amd64"
+RUN mv ./dockerscripts/curl-amd64 /go/bin/curl && chmod +x /go/bin/curl
 
 FROM registry.access.redhat.com/ubi9/ubi-micro:latest
 
@@ -49,15 +49,15 @@ LABEL name="MinIO" \
       org.opencontainers.image.source="${REPO_URL}" \
       org.opencontainers.image.licenses="AGPL-3.0"
 
-RUN chmod -R 777 /usr/bin
+#RUN chmod -R 775 /usr/bin
 
 COPY --from=builder /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
-COPY --from=builder /usr/bin/minio /usr/bin/minio
-COPY --from=builder /usr/bin/mc /usr/bin/mc
-COPY --from=builder /go/bin/curl /usr/bin/curl
+COPY --from=builder --chmod=755 /usr/bin/minio /usr/bin/minio
+COPY --from=builder --chmod=755 /usr/bin/mc /usr/bin/mc
+COPY --from=builder --chmod=755 /go/bin/curl /usr/bin/curl
 COPY --from=builder /workspace/CREDITS /licenses/CREDITS
 COPY --from=builder /workspace/LICENSE /licenses/LICENSE
-COPY --from=builder /workspace/dockerscripts/docker-entrypoint.sh /usr/bin/docker-entrypoint.sh
+COPY --from=builder --chmod=755 /workspace/dockerscripts/docker-entrypoint.sh /usr/bin/docker-entrypoint.sh
 
 ENV MINIO_ACCESS_KEY_FILE=access_key \
     MINIO_SECRET_KEY_FILE=secret_key \
