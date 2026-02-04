@@ -4,7 +4,7 @@ FROM golang:1.24-alpine AS builder
 ARG REPO_URL
 ARG COMMIT_ID
 ARG SHORT_COMMIT_ID
-ARG RELEASE_TAG
+ARG VERSION
 
 ENV GOPATH=/go
 ENV CGO_ENABLED=0
@@ -15,37 +15,40 @@ RUN apk add -U --no-cache ca-certificates git curl bash
 
 COPY . .
 
-RUN VERSION_TIME=$(echo ${RELEASE_TAG} | sed 's/RELEASE\.//' | sed 's/T/ /' | sed 's/-/:/3' | sed 's/-/:/3' | sed 's/ /T/') && \
-    COPYRIGHT_YEAR=$(date +%Y) && \
-    echo "Building MinIO: $RELEASE_TAG ($SHORT_COMMIT_ID) from ${REPO_URL}" && \
-    go build -tags kqueue -trimpath \
-    -ldflags "-s -w \
-    -X github.com/minio/minio/cmd.Version=${VERSION_TIME} \
-    -X github.com/minio/minio/cmd.CopyrightYear=${COPYRIGHT_YEAR} \
-    -X github.com/minio/minio/cmd.ReleaseTag=${RELEASE_TAG} \
-    -X github.com/minio/minio/cmd.CommitID=${COMMIT_ID} \
-    -X github.com/minio/minio/cmd.ShortCommitID=${SHORT_COMMIT_ID} \
-    -X github.com/minio/minio/cmd.GOPATH=${GOPATH} \
-    -X github.com/minio/minio/cmd.GOROOT=$(go env GOROOT)" \
-    -o /usr/bin/minio .
+RUN echo "Building MinIO: ${VERSION} (${SHORT_COMMIT_ID})" && \
+    go build -trimpath \
+        -ldflags " \
+            -s -w \
+            -X github.com/minio/minio/cmd.Version=${VERSION} \
+            -X github.com/minio/minio/cmd.CopyrightYear=$(date +%Y) \
+            -X github.com/minio/minio/cmd.ReleaseTag=${VERSION} \
+            -X github.com/minio/minio/cmd.CommitID=${COMMIT_ID} \
+            -X github.com/minio/minio/cmd.ShortCommitID=${SHORT_COMMIT_ID} \
+            -X github.com/minio/minio/cmd.GOPATH=${GOPATH} \
+            -X github.com/minio/minio/cmd.GOROOT=$(go env GOROOT)" \
+        -o /usr/bin/minio .
 
 RUN /usr/bin/minio --version
 
 RUN curl -sL https://dl.min.io/client/mc/release/linux-$(go env GOARCH)/mc -o /usr/bin/mc && \
     chmod +x /usr/bin/mc
 
-# "https://github.com/moparisthebest/static-curl/releases/download/v8.17.0/curl-amd64"
-RUN mv ./dockerscripts/curl-amd64 /go/bin/curl && chmod +x /go/bin/curl
+RUN mv ./dockerscripts/curl-$(go env GOARCH) /go/bin/curl && chmod +x /go/bin/curl
 
 FROM registry.access.redhat.com/ubi9/ubi-micro:latest
 
 ARG REPO_URL
+ARG VERSION
 
 LABEL name="KBase MinIO" \
-      vendor="MinIO Inc <dev@min.io>" \
-      maintainer="MinIO Inc <dev@min.io>" \
-      summary="MinIO is a High Performance Object Storage, API compatible with Amazon S3 cloud storage service." \
-      description="MinIO object storage is fundamentally different. Designed for performance and the S3 API, it is 100% open-source." \
+      vendor="KBase" \
+      maintainer="KBase <help@kbase.us>" \
+      version="${VERSION}" \
+      summary="KBase MinIO - High Performance Object Storage" \
+      description="MinIO object storage customized for KBase. API compatible with Amazon S3, 100% open-source." \
+      org.opencontainers.image.title="KBase MinIO" \
+      org.opencontainers.image.vendor="KBase" \
+      org.opencontainers.image.version="${VERSION}" \
       org.opencontainers.image.source="${REPO_URL}" \
       org.opencontainers.image.licenses="AGPL-3.0"
 
