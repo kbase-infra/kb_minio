@@ -34,7 +34,7 @@ RUN curl -sL https://dl.min.io/client/mc/release/linux-$(go env GOARCH)/mc -o /u
 
 RUN mv ./dockerscripts/curl-$(go env GOARCH) /go/bin/curl && chmod +x /go/bin/curl
 
-FROM registry.access.redhat.com/ubi9/ubi-micro:latest
+FROM registry.access.redhat.com/ubi9/ubi-micro@sha256:f2e8838ebf44f30159e361fbba77d8d29e9bdba58a4ea68519b4b0b3c51e99ba
 
 ARG REPO_URL
 ARG VERSION
