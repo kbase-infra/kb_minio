@@ -3,7 +3,7 @@ set -e
 
 REPO_URL=$(git remote get-url origin)
 COMMIT_ID=$(git rev-parse HEAD)
-VERSION=$(git describe --tags --exact-match 2>/dev/null || echo "dev")
+VERSION="IBuiltThis"
 
 # Use podman if available, otherwise docker
 if command -v podman &>/dev/null; then
@@ -21,5 +21,4 @@ $DOCKER_CMD build \
     --build-arg REPO_URL="${REPO_URL}" \
     --build-arg COMMIT_ID="${COMMIT_ID}" \
     --build-arg VERSION="${VERSION}" \
-    -t minio:latest \
-    .
+    -t kb_minio:latest
