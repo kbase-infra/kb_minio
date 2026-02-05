@@ -27,12 +27,6 @@ RUN echo "Building MinIO: ${VERSION} (${COMMIT_ID::7})" && \
             -X github.com/minio/minio/cmd.GOROOT=$(go env GOROOT)" \
         -o /usr/bin/minio .
 
-RUN /usr/bin/minio --version
-
-RUN curl -sL https://dl.min.io/client/mc/release/linux-$(go env GOARCH)/mc -o /usr/bin/mc && \
-    chmod +x /usr/bin/mc
-
-RUN mv ./dockerscripts/curl-$(go env GOARCH) /go/bin/curl && chmod +x /go/bin/curl
 
 FROM registry.access.redhat.com/ubi9/ubi-micro@sha256:f2e8838ebf44f30159e361fbba77d8d29e9bdba58a4ea68519b4b0b3c51e99ba
 
@@ -53,8 +47,6 @@ LABEL name="KBase MinIO" \
 
 COPY --from=builder /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
 COPY --from=builder --chmod=755 /usr/bin/minio /usr/bin/minio
-COPY --from=builder --chmod=755 /usr/bin/mc /usr/bin/mc
-COPY --from=builder --chmod=755 /go/bin/curl /usr/bin/curl
 COPY --from=builder /workspace/CREDITS /licenses/CREDITS
 COPY --from=builder /workspace/LICENSE /licenses/LICENSE
 COPY --from=builder --chmod=755 /workspace/dockerscripts/docker-entrypoint.sh /usr/bin/docker-entrypoint.sh
