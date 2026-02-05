@@ -10,7 +10,7 @@ ENV CGO_ENABLED=0
 
 WORKDIR /workspace
 
-RUN apk add -U --no-cache ca-certificates git curl bash
+RUN apk add -U --no-cache ca-certificates
 
 COPY . .
 
