@@ -1,0 +1,55 @@
+# MinIO Dockerfile - Build from source
+FROM golang:1.24-alpine AS builder
+
+ARG REPO_URL
+ARG COMMIT_ID
+ARG VERSION
+
+ENV GOPATH=/go
+ENV CGO_ENABLED=0
+
+WORKDIR /workspace
+
+RUN apk add -U --no-cache ca-certificates
+
+COPY . .
+
+RUN echo "Building MinIO: ${VERSION} (${COMMIT_ID::7})" && \
+    go build -trimpath \
+        -ldflags " \
+            -s -w \
+            -X github.com/minio/minio/cmd.Version=${VERSION} \
+            -X github.com/minio/minio/cmd.CopyrightYear=$(date +%Y) \
+            -X github.com/minio/minio/cmd.ReleaseTag=${VERSION} \
+            -X github.com/minio/minio/cmd.CommitID=${COMMIT_ID} \
+            -X github.com/minio/minio/cmd.ShortCommitID=${COMMIT_ID::7} \
+            -X github.com/minio/minio/cmd.GOPATH=${GOPATH} \
+            -X github.com/minio/minio/cmd.GOROOT=$(go env GOROOT)" \
+        -o /usr/bin/minio .
+
+
+FROM registry.access.redhat.com/ubi9/ubi-micro@sha256:f2e8838ebf44f30159e361fbba77d8d29e9bdba58a4ea68519b4b0b3c51e99ba
+
+ARG REPO_URL
+ARG VERSION
+
+LABEL name="KBase MinIO" \
+      vendor="KBase" \
+      maintainer="KBase <help@kbase.us>" \
+      version="${VERSION}" \
+      summary="KBase MinIO - High Performance Object Storage" \
+      description="MinIO object storage customized for KBase. API compatible with Amazon S3, 100% open-source." \
+      org.opencontainers.image.title="KBase MinIO" \
+      org.opencontainers.image.vendor="KBase" \
+      org.opencontainers.image.version="${VERSION}" \
+      org.opencontainers.image.source="${REPO_URL}" \
+      org.opencontainers.image.licenses="AGPL-3.0"
+
+COPY --from=builder /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
+COPY --from=builder --chmod=755 /usr/bin/minio /usr/bin/minio
+COPY --from=builder /workspace/CREDITS /licenses/CREDITS
+COPY --from=builder /workspace/LICENSE /licenses/LICENSE
+COPY --from=builder --chmod=755 /workspace/dockerscripts/docker-entrypoint.sh /usr/bin/docker-entrypoint.sh
+
+ENTRYPOINT ["/usr/bin/docker-entrypoint.sh"]
+CMD ["minio"]

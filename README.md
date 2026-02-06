@@ -1,3 +1,10 @@
+# KBase Minio Fork
+
+* Added custom GHA build files
+* Added custom KB_Dockerfile
+* Added in curl locally to the repo
+* Use `build_local.sh` to build a docker image locally 
+
 # MinIO Quickstart Guide
 
 [![Slack](https://slack.min.io/slack?type=svg)](https://slack.min.io) [![Docker Pulls](https://img.shields.io/docker/pulls/minio/minio.svg?maxAge=604800)](https://hub.docker.com/r/minio/minio/) [![license](https://img.shields.io/badge/license-AGPL%20V3-blue)](https://github.com/minio/minio/blob/master/LICENSE)
