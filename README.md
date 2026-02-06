@@ -1,6 +1,6 @@
 # KBase Minio Fork
 
-* Added custom GHA build files
+* Added custom GHA build files to build
 * Added custom KB_Dockerfile
 * Added in curl locally to the repo
 * Use `build_local.sh` to build a docker image locally 
